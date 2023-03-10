@@ -1,6 +1,5 @@
 import tensorflow as tf
 
-
 from preprocess import IMG_SIZE, NUM_CLASSES
 
 height=IMG_SIZE
