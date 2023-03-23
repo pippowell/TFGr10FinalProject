@@ -12,46 +12,59 @@ base_model = [
             [6, 320, 1, 1, 3],
 ]
 
+# phi_values = {  
+#             # tuple of: (phi, resolution, drop_rate=survival_prob)
+#             "b0": (0, 224, 0.2),  # depth=alpha**phi, width=beta**phi
+#             "b1": (0.5, 240, 0.2),
+#             "b2": (1, 260, 0.3),
+#             "b3": (2, 300, 0.3),
+#             "b4": (3, 380, 0.4),
+#             "b5": (4, 456, 0.4),
+#             "b6": (5, 528, 0.5),
+#             "b7": (6, 600, 0.5),
+# }
+
 phi_values = {  
-            # tuple of: (phi, resolution, drop_rate)
-            "b0": (0, 224, 0.2),  # depth=alpha**phi, width=beta**phi
-            "b1": (0.5, 240, 0.2),
-            "b2": (1, 260, 0.3),
-            "b3": (2, 300, 0.3),
-            "b4": (3, 380, 0.4),
-            "b5": (4, 456, 0.4),
-            "b6": (5, 528, 0.5),
-            "b7": (6, 600, 0.5),
+            # tuple of: (width multiplier, depth multiplier, resolution, drop_rate=survival_prob)
+            "b0": (1.0, 1.0, 224, 0.2),  # depth=alpha**phi, width=beta**phi
+            "b1": (1.0, 1.1, 240, 0.2),
+            "b2": (1.1, 1.2, 260, 0.3),
+            "b3": (1.2, 1.4, 300, 0.3),
+            "b4": (1.4, 1.8, 380, 0.4),
+            "b5": (1.6, 2.2, 456, 0.4),
+            "b6": (1.8, 2.6, 528, 0.5),
+            "b7": (2.0, 3.1, 600, 0.5),
 }
 
 class EfficientNet(tf.keras.Model):
     def __init__(self, version, num_classes):
         super(EfficientNet, self).__init__()
-        width_factor, depth_factor, dropout_rate = self.calculate_factors(version)
+        # width_factor, depth_factor, dropout_rate = self.calculate_factors(version)
+        width_factor, depth_factor, _, dropout_rate = phi_values(version)
         last_channels = tf.math.ceil(1280 * width_factor)
 
         self.features = self.create_features(width_factor, depth_factor, last_channels)
         self.pool = tf.keras.layers.GlobalAveragePooling2D()
-        self.classifier = tf.keras.models.Sequential(
-            tf.keras.layers.Dropout(rate=dropout_rate),
-            tf.keras.layers.Dense(units=num_classes) # nn.Linear=(in_features=last_channels, out_features=num_classes),
-        )
+        self.dropout = tf.keras.layers.Dropout(rate=dropout_rate)
+        self.lastlayer = tf.keras.layers.Dense(units=num_classes) # nn.Linear=(in_features=last_channels, out_features=num_classes),
 
-    def calculate_factors(self, version, alpha=1.2, beta=1.1):
-        phi, res, drop_rate = phi_values[version]
-        depth_factor = alpha**phi
-        width_factor = beta**phi
-        return width_factor, depth_factor, drop_rate
+    # def calculate_factors(self, version, alpha=1.2, beta=1.1):
+    #     '''
+    #     caculate the factors for depth/width factor with phi for b0 to b7'''
+    #     phi, res, drop_rate = phi_values[version]
+    #     depth_factor = alpha**phi
+    #     width_factor = beta**phi
+    #     return width_factor, depth_factor, res, drop_rate
 
     def create_features(self, width_factor, depth_factor, last_channels):
 
-        channels = int(32 * width_factor)
+        channels = int(32*width_factor)
         features = tf.keras.models.Sequential([CNNBlock(3, channels, 3, stride=2, padding=1)])
         in_channels = channels
 
         for expand_ratio, channels, repeats, stride, kernel_size in base_model:
-            out_channels = 4 *  tf.math.ceil(int(channels * width_factor) / 4)
-            layers_repeats = tf.math.ceil(repeats * depth_factor)
+            out_channels = 4*tf.math.ceil(int(channels*width_factor)/4)
+            layers_repeats = tf.math.ceil(repeats*depth_factor)
 
             for layer in range(layers_repeats):
                 features.append(
@@ -72,10 +85,11 @@ class EfficientNet(tf.keras.Model):
 
         return features
 
-    def forward(self, x):
+    def forward(self, x, training=False):
         x = self.features(x)
         x = self.pool(x)
-        x = self.classifier(x.view(x.shape[0], -1)) 
+        x = self.dropout(x.view(x.shape[0], -1), training=training) 
+        x = self.lastlayer(x)
         return x
 
 
