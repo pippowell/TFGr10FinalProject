@@ -3,9 +3,9 @@ import tensorflow_addons as tfa
 
 class CNNBlock(tf.keras.Model):
     '''Simple CNN block'''
-    def __init__(self, filters, kernel_size, stride, padding):
+    def __init__(self, filters, kernel_size, strides, padding):
         super(CNNBlock, self).__init__()
-        self.cnn = tf.keras.layers.Conv2D(filters=filters, kernel_size=kernel_size, stride=stride, padding=padding)
+        self.cnn = tf.keras.layers.Conv2D(filters=filters, kernel_size=kernel_size, strides=strides, padding=padding)
         self.batchnorm = tf.keras.layers.BatchNormalization()
         self.silu = tf.keras.layers.Activation(tf.nn.silu)
 
@@ -20,8 +20,8 @@ class SEBlock(tf.keras.Model):
     def __init__(self, initial_dim, reduce_dim):
         super(SEBlock, self).__init__()
         self.glob_avg_pool = tf.keras.layers.GlobalAveragePooling2D()  # C x H x W -> C x 1 x 1
-        self.conv_squeeze = tf.keras.layers.Conv2D(filters=reduce_dim, kernel_size=1, stride=1, padding=0, activation='silu') # size = reduce_dim x 
-        self.conv_excite = tf.keras.layers.Conv2D(filters=initial_dim, kernel_size=1, stride=1, padding=0, activation='sigmoid') # size = initial_dim x
+        self.conv_squeeze = tf.keras.layers.Conv2D(filters=reduce_dim, kernel_size=1, strides=1, padding=0, activation='silu') # size = reduce_dim x 
+        self.conv_excite = tf.keras.layers.Conv2D(filters=initial_dim, kernel_size=1, strides=1, padding=0, activation='sigmoid') # size = initial_dim x
         
 
     def call(self, x):
@@ -43,7 +43,7 @@ class InvertedResidualBlock(tf.keras.Model):
         input_filters, # Q. how do I get num of input filters from the input?
         output_filters,
         kernel_size,
-        stride,
+        strides,
         padding,
         expand_ratio,
         reduction=4,  # for squeeze excitation
@@ -51,15 +51,15 @@ class InvertedResidualBlock(tf.keras.Model):
     ):
         super(InvertedResidualBlock, self).__init__()
         self.survival_prob = survival_prob
-        self.use_residual = input_filters == output_filters and stride == 1
+        self.use_residual = input_filters == output_filters and strides == 1
         hidden_dim = input_filters * expand_ratio
         self.expand = input_filters != hidden_dim
         reduced_dim = int(input_filters / reduction)
 
         if self.expand:
-            self.conv_expand = tf.keras.layers.Conv2D(filters=hidden_dim, kernel_size=3, stride=1, padding=1)
+            self.conv_expand = tf.keras.layers.Conv2D(filters=hidden_dim, kernel_size=3, strides=1, padding=1)
 
-        self.convB = CNNBlock(output_filters, kernel_size, stride, padding)
+        self.convB = CNNBlock(output_filters, kernel_size, strides, padding)
         self.seB = SEBlock(initial_dim=hidden_dim, reduce_dim=reduced_dim)
         self.conv = tf.keras.layers.Conv2D(filters=output_filters, kernel_size=1, use_bias=False) # nn.Conv2d(in_channels, reduced_dim, kernel_size=1, bias=False)
         self.batchnorm = tf.keras.layers.BatchNormalization() # nn.BatchNorm2d(out_channels) 
