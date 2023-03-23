@@ -20,8 +20,8 @@ class SEBlock(tf.keras.Model):
     def __init__(self, initial_dim, reduce_dim):
         super(SEBlock, self).__init__()
         self.glob_avg_pool = tf.keras.layers.GlobalAveragePooling2D()  # C x H x W -> C x 1 x 1
-        self.conv_squeeze = tf.keras.layers.Conv2D(filters=reduce_dim, kernel_size=1, strides=1, padding=0, activation='silu') # size = reduce_dim x 
-        self.conv_excite = tf.keras.layers.Conv2D(filters=initial_dim, kernel_size=1, strides=1, padding=0, activation='sigmoid') # size = initial_dim x
+        self.conv_squeeze = tf.keras.layers.Conv2D(filters=reduce_dim, kernel_size=1, strides=1, padding="valid", activation='silu') # size = reduce_dim x 
+        self.conv_excite = tf.keras.layers.Conv2D(filters=initial_dim, kernel_size=1, strides=1, padding="valid", activation='sigmoid') # size = initial_dim x
         
 
     def call(self, x):
@@ -57,7 +57,7 @@ class InvertedResidualBlock(tf.keras.Model):
         reduced_dim = int(input_filters / reduction)
 
         if self.expand:
-            self.conv_expand = tf.keras.layers.Conv2D(filters=hidden_dim, kernel_size=3, strides=1, padding=1)
+            self.conv_expand = tf.keras.layers.Conv2D(filters=hidden_dim, kernel_size=3, strides=1, padding="same")
 
         self.convB = CNNBlock(output_filters, kernel_size, strides, padding)
         self.seB = SEBlock(initial_dim=hidden_dim, reduce_dim=reduced_dim)

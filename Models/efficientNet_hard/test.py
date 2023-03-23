@@ -8,6 +8,6 @@ def test():
     x = tf.random.uniform(shape=[1, 3, res, res])
     y = net(x)
 
-    print(y.size())
+    print(f"y.size: {y.size()}")
 
 test()

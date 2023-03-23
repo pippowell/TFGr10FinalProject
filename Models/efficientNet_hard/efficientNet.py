@@ -39,12 +39,22 @@ class EfficientNet(tf.keras.Model):
 
         channels = int(32*width_factor)
         # features = tf.keras.models.Sequential([CNNBlock(filters=3, kernel_size=3, strides=2, padding=1)])
-        features = [CNNBlock(filters=3, kernel_size=3, strides=2, padding=1)]
+        features = [CNNBlock(filters=3, kernel_size=3, strides=2, padding="same")] # padding=1
         input_filters = channels
 
         for expand_ratio, channels, repeats, strides, kernel_size in base_model:
             output_filters = 4*tf.math.ceil(int(channels*width_factor)/4)
-            layers_repeats = tf.math.ceil(repeats*depth_factor)
+            layers_repeats = int(tf.math.ceil(repeats*depth_factor))
+
+            print(f"layers_repeats: {layers_repeats}")
+            print(f"repeats: {repeats}")
+
+            if kernel_size == 1:
+                pad = "valid"
+            elif kernel_size == 3:
+                pad = "same"
+            elif kernel_size == 5:
+                pad = "same"
 
             for layer in range(layers_repeats):
                 features.append(
@@ -54,19 +64,21 @@ class EfficientNet(tf.keras.Model):
                         expand_ratio=expand_ratio,
                         strides=strides if layer == 0 else 1,
                         kernel_size=kernel_size,
-                        padding=kernel_size // 2,  # if k=1:pad=0, k=3:pad=1, k=5:pad=2
+                        padding = pad
+                        # padding=kernel_size // 2,  # if k=1:pad=0, k=3:pad=1, k=5:pad=2
                     )
                 )
                 input_filters = output_filters
 
         features.append(
-            CNNBlock(filters=last_channels, kernel_size=1, strides=1, padding=0)
+            CNNBlock(filters=last_channels, kernel_size=1, strides=1, padding="valid")
         )
-
+        print(features)
         return features
 
     def forward(self, x, training=False):
-        x = self.layerlist(x)
+        for layer in self.layerlist:
+            x = layer(x)        
         x = self.pool(x)
         x = self.dropout(x.view(x.shape[0], -1), training=training) 
         x = self.lastlayer(x)
