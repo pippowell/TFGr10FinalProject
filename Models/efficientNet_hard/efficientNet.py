@@ -76,7 +76,7 @@ class EfficientNet(tf.keras.Model):
         print(features)
         return features
 
-    def forward(self, x, training=False):
+    def call(self, x, training=False):
         for layer in self.layerlist:
             x = layer(x)        
         x = self.pool(x)

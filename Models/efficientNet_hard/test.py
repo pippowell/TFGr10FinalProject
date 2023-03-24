@@ -6,7 +6,9 @@ def test():
     width_mul, depth_mul, res, dropout_rate = phi_values[version]
     net = EfficientNet(version=version, num_classes=2)
     x = tf.random.uniform(shape=[1, 3, res, res])
+    print(f"x: {tf.shape(x)}")
     y = net(x)
+    print(f"y: {y}")
 
     print(f"y.size: {y.size()}")
 

@@ -10,7 +10,11 @@ class CNNBlock(tf.keras.Model):
         self.silu = tf.keras.layers.Activation(tf.nn.silu)
 
     def call(self, x):
+        print(f"before cnn(x): {x.dtype}")
+        x = tf.cast(x, dtype=tf.int32)
+        print(f"after casting: {x.dtype}")
         x = self.cnn(x)
+        print(f"after cnn(x): {x.dtype}")
         x = self.batchnorm(x)
         x = self.silu(x)
         return x
