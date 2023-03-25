@@ -46,9 +46,6 @@ class EfficientNet(tf.keras.Model):
             output_filters = 4*tf.math.ceil(int(channels*width_factor)/4)
             layers_repeats = int(tf.math.ceil(repeats*depth_factor))
 
-            # print(f"layers_repeats: {layers_repeats}")
-            # print(f"repeats: {repeats}")
-
             if kernel_size == 1:
                 pad = "valid"
             elif kernel_size == 3:
@@ -57,6 +54,7 @@ class EfficientNet(tf.keras.Model):
                 pad = "same"
 
             for layer in range(layers_repeats):
+                # print(f"layer within layerlist: {layer}")
                 features.append(
                     InvertedResidualBlock(
                         input_filters=input_filters,
@@ -77,9 +75,9 @@ class EfficientNet(tf.keras.Model):
         return features
 
     def call(self, x, training=False):
-        for layer in self.layerlist:
+        for (layer, i) in zip(self.layerlist, range(len(self.layerlist))):
             x = layer(x)        
-            print(f"after iteration {layer}: x is {tf.shape(x)}")
+            print(f"after iteration {i}: x is {tf.shape(x)}")
         print("done with layerlist")
         x = self.pool(x)
         x = self.dropout(x.view(x.shape[0], -1), training=training) 
