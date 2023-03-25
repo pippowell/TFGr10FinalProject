@@ -1,5 +1,5 @@
 import tensorflow as tf
-from efficientNet import EfficientNet, phi_values
+from model import EfficientNet, phi_values
 
 def test():
     version = "b0"
