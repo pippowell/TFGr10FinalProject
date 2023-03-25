@@ -14,7 +14,7 @@ base_model = [
 
 phi_values = {  
             # tuple of: (width multiplier, depth multiplier, resolution, drop_rate=survival_prob)
-            "b0": (1.0, 1.0, 224, 0.2),  # depth=alpha**phi, width=beta**phi
+            "b0": (1.0, 1.0, 224, 0.2),  
             "b1": (1.0, 1.1, 240, 0.2),
             "b2": (1.1, 1.2, 260, 0.3),
             "b3": (1.2, 1.4, 300, 0.3),
@@ -46,8 +46,8 @@ class EfficientNet(tf.keras.Model):
             output_filters = 4*tf.math.ceil(int(channels*width_factor)/4)
             layers_repeats = int(tf.math.ceil(repeats*depth_factor))
 
-            print(f"layers_repeats: {layers_repeats}")
-            print(f"repeats: {repeats}")
+            # print(f"layers_repeats: {layers_repeats}")
+            # print(f"repeats: {repeats}")
 
             if kernel_size == 1:
                 pad = "valid"
@@ -79,6 +79,8 @@ class EfficientNet(tf.keras.Model):
     def call(self, x, training=False):
         for layer in self.layerlist:
             x = layer(x)        
+            print(f"after iteration {layer}: x is {tf.shape(x)}")
+        print("done with layerlist")
         x = self.pool(x)
         x = self.dropout(x.view(x.shape[0], -1), training=training) 
         x = self.lastlayer(x)
