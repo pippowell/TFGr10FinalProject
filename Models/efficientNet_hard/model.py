@@ -43,7 +43,7 @@ class EfficientNet(tf.keras.Model):
         input_filters = channels
 
         for expand_ratio, channels, repeats, strides, kernel_size in base_model:
-            output_filters = 4*tf.math.ceil(int(channels*width_factor)/4)
+            output_filters = 4*int(tf.math.ceil(int(channels*width_factor)/4))
             layers_repeats = int(tf.math.ceil(repeats*depth_factor))
 
             for layer in range(layers_repeats):
