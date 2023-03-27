@@ -41,40 +41,47 @@ class EfficientNet(tf.keras.Model):
         # features = tf.keras.models.Sequential([CNNBlock(filters=3, kernel_size=3, strides=2, padding=1)])
         features = [CNNBlock(filters=3, kernel_size=3, strides=2, padding="same")] # padding=1
         input_filters = channels
+        
+        kernels = [3, 3, 5, 3, 5, 5, 3]
+        expansions = [1, 6, 6, 6, 6, 6, 6]
+        num_channels = [16, 24, 40, 80, 112, 192, 320]
+        num_layers = [1, 2, 2, 3, 3, 4, 1]
+        strides =[1, 2, 2, 2, 1, 2, 1]
+        
+        # Scale channels and num_layers according to width and depth multipliers.
+        scaled_num_channels = [4*tf.math.ceil(int(c*width_factor) / 4) for c in num_channels]
+        scaled_num_layers = [int(d * depth_factor) for d in num_layers]
+        
+        for i in range(len(scaled_num_channels)):
+            kernel_size = kernels[i]
 
-        for expand_ratio, channels, repeats, strides, kernel_size in base_model:
-            output_filters = 4*tf.math.ceil(int(channels*width_factor)/4)
-            layers_repeats = int(tf.math.ceil(repeats*depth_factor))
+            if kernel_size == 1:
+                pad = "valid"
+            elif kernel_size == 3:
+                pad = "same"
+            elif kernel_size == 5:
+                pad = "same"
+             
+            features += [InvertedResidualBlock(input_filters if repeat==0 else scaled_num_channels[i], 
+                               scaled_num_channels[i],
+                               kernel_size = kernel_size,
+                               strides = strides[i] if repeat==0 else 1, 
+                               expand_ratio = expansions[i],
+                               padding=pad
+                              )
+                       for repeat in range(scaled_num_layers[i])
+                      ]
+            input_filters = scaled_num_channels[i]
 
-            for layer in range(layers_repeats):
-
-                if kernel_size == 1:
-                    pad = "valid"
-                elif kernel_size == 3:
-                    pad = "same"
-                elif kernel_size == 5:
-                    pad = "same"
-
-                features.append(
-                    InvertedResidualBlock(
-                        input_filters=input_filters,
-                        output_filters=output_filters,
-                        expand_ratio=expand_ratio,
-                        strides=strides if layer == 0 else 1,
-                        kernel_size=kernel_size,
-                        padding = pad
-                        # padding=kernel_size // 2,  # if k=1:pad=0, k=3:pad=1, k=5:pad=2
-                    )
-                )
-                input_filters = output_filters
-
-        features.append(CNNBlock(filters=last_channels, kernel_size=1, strides=1, padding="valid"))
+        features.append(
+            CNNBlock(filters=last_channels, kernel_size=1, strides=1, padding="valid")
+        )
         return features
 
     def call(self, x, training=False):
         for (layer, i) in zip(self.layerlist, range(len(self.layerlist))):
             x = layer(x)        
-            print(f"after iteration {i}: x is {tf.shape(x)} and dtype: {x.dtype}")
+            print(f"after iteration {i}: x is {tf.shape(x)} and dtype of {x.dtype}")
         print("done with layerlist")
         x = self.pool(x)
         x = self.dropout(x.view(x.shape[0], -1), training=training) 

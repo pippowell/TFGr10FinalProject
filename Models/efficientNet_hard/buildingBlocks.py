@@ -10,8 +10,10 @@ class CNNBlock(tf.keras.Model):
         self.silu = tf.keras.layers.Activation(tf.nn.silu)
 
     def call(self, x):
+        # x = tf.cast(x, tf.int32)
         x = self.cnn(x)
         print(f"after cnn(x): {tf.shape(x)}")
+        
         x = self.batchnorm(x)
         x = self.silu(x)
         print(f"after cnn block: {tf.shape(x)}")
@@ -22,7 +24,7 @@ class SEBlock(tf.keras.Model):
     def __init__(self, initial_dim, reduce_dim):
         super(SEBlock, self).__init__()
         self.glob_avg_pool = tf.keras.layers.GlobalAveragePooling2D()  # H x W x C -> 1 x 1 x C
-        self.reshape = tf.keras.layers.Reshape((1,1,initial_dim))
+        self.reshape = tf.keras.layers.Reshape((1, 1, initial_dim))
         self.conv_squeeze = tf.keras.layers.Conv2D(filters=reduce_dim, kernel_size=1, strides=1, padding="valid", activation='silu') 
         self.conv_excite = tf.keras.layers.Conv2D(filters=initial_dim, kernel_size=1, strides=1, padding="valid", activation='sigmoid') 
 
@@ -35,13 +37,13 @@ class SEBlock(tf.keras.Model):
         and suppress less informative channels, thereby improving the model's ability to capture important features and achieve better performance on a given task.
         '''
         x = self.glob_avg_pool(input)
-        print(f"after glob avg pool: {tf.shape(x)}")
+        # print(f"after glob avg pool: {tf.shape(x)}")
         x = self.reshape(x)
-        print(f"after reshape: {tf.shape(x)}")
+        # print(f"after reshape: {tf.shape(x)}")
         x = self.conv_squeeze(x)
-        print(f"after squeeze: {tf.shape(x)}")
+        # print(f"after squeeze: {tf.shape(x)}")
         x = self.conv_excite(x)
-        print(f"after excite: {tf.shape(x)}")
+        print(f"after SE block: {tf.shape(x)}")
 
         out = tf.math.multiply(input, x)
         return out           
@@ -73,8 +75,9 @@ class InvertedResidualBlock(tf.keras.Model):
         self.depthwise_conv = CNNBlock(filters=hidden_dim, kernel_size=kernel_size, strides=strides, padding=padding)
         self.seB = SEBlock(initial_dim=hidden_dim, reduce_dim=reduced_dim)
         # self.conv = tf.keras.layers.Conv2D(filters=output_filters, kernel_size=1, use_bias=False)
-        self.pointwise_conv = CNNBlock(filters=reduced_dim, kernel_size=1, strides=strides, padding=padding)
+        self.pointwise_conv = CNNBlock(filters=int(output_filters), kernel_size=1, strides=strides, padding=padding)
         self.batchnorm = tf.keras.layers.BatchNormalization() # nn.BatchNorm2d(out_channels) 
+        self.add = tf.keras.layers.Add()
 
     def stochastic_depth(self, x, training=False):
         '''
@@ -99,10 +102,12 @@ class InvertedResidualBlock(tf.keras.Model):
         x = self.pointwise_conv(x)
         print(f"after pointwise_conv: {tf.shape(x)}")
         x = self.batchnorm(x)
+        print(f"after batchnorm: {tf.shape(x)}")
         
         if self.use_residual:
             x = self.stochastic_depth(x, training=training) 
             x += inputs
+            # x = self.add([x, input])
             print(f"after use_residual: {tf.shape(x)}")
             return x
         else:

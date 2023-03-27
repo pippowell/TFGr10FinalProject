@@ -1,5 +1,5 @@
 import tensorflow as tf
-from model import EfficientNet, phi_values
+from model_new import EfficientNet, phi_values
 
 def test():
     version = "b0"
@@ -9,6 +9,6 @@ def test():
     print(f"initial shape of x: {tf.shape(x)} and dtype: {x.dtype}")
     y = network(x)
 
-    print(f"y.size: {y.size()}")
+    print(f"y.size: {y.size()}") # should be [1, num_classes]
 
 test()
