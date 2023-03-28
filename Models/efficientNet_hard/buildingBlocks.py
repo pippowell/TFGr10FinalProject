@@ -1,15 +1,16 @@
 import tensorflow as tf
-import tensorflow_addons as tfa
+# import tensorflow_addons as tfa
 
 class CNNBlock(tf.keras.Model):
     '''Simple CNN block'''
-    def __init__(self, filters, kernel_size, strides, padding):
+    def __init__(self, filters: int, kernel_size, strides, padding):
         super(CNNBlock, self).__init__()
         self.cnn = tf.keras.layers.Conv2D(filters=filters, kernel_size=kernel_size, strides=strides, padding=padding)
         self.batchnorm = tf.keras.layers.BatchNormalization()
         self.silu = tf.keras.layers.Activation(tf.nn.silu)
 
     def call(self, x):
+        print(f"before cnnBlock(x)")
         # x = tf.cast(x, tf.int32)
         x = self.cnn(x)
         print(f"after cnn(x): {tf.shape(x)}")
@@ -21,7 +22,7 @@ class CNNBlock(tf.keras.Model):
 
 class SEBlock(tf.keras.Model):
     '''Squeeze and excitation block'''
-    def __init__(self, initial_dim, reduce_dim):
+    def __init__(self, initial_dim: int, reduce_dim: int):
         super(SEBlock, self).__init__()
         self.glob_avg_pool = tf.keras.layers.GlobalAveragePooling2D()  # H x W x C -> 1 x 1 x C
         self.reshape = tf.keras.layers.Reshape((1, 1, initial_dim))
@@ -51,8 +52,8 @@ class SEBlock(tf.keras.Model):
 class InvertedResidualBlock(tf.keras.Model):
     def __init__(
         self,
-        input_filters, # Q. how do I get num of input filters from the input?
-        output_filters,
+        input_filters: int, # Q. how do I get num of input filters from the input?
+        output_filters: int,
         kernel_size,
         strides,
         padding,
@@ -94,11 +95,11 @@ class InvertedResidualBlock(tf.keras.Model):
 
     def call(self, inputs, training=False):
         x = self.expand_conv(inputs) if self.expand else inputs
-        print(f"after expand_conv: {tf.shape(x)}")
+        print(f"after expand_conv: {tf.shape(x)}, self.expand: {self.expand}")
         x = self.depthwise_conv(x)
         print(f"after depthwise_conv: {tf.shape(x)}")
         x = self.seB(x)
-        print(f"after seB: {tf.shape(x)}")
+        print(f"after seB: {tf.shape(x)}") 
         x = self.pointwise_conv(x)
         print(f"after pointwise_conv: {tf.shape(x)}")
         x = self.batchnorm(x)
@@ -108,7 +109,8 @@ class InvertedResidualBlock(tf.keras.Model):
             x = self.stochastic_depth(x, training=training) 
             x += inputs
             # x = self.add([x, input])
-            print(f"after use_residual: {tf.shape(x)}")
+            print(f"after use_residual: {tf.shape(x)}, self.use_residual: {self.use_residual}")
             return x
         else:
             return x
+        

@@ -35,7 +35,7 @@ class EfficientNet(tf.keras.Model):
         self.dropout = tf.keras.layers.Dropout(rate=dropout_rate)
         self.lastlayer = tf.keras.layers.Dense(units=num_classes) # nn.Linear=(in_features=last_channels, out_features=num_classes),
 
-    def create_layers(self, width_factor, depth_factor, last_channels):
+    def create_layers(self, width_factor, depth_factor, last_channels: int):
 
         channels = int(32*width_factor)
         # features = tf.keras.models.Sequential([CNNBlock(filters=3, kernel_size=3, strides=2, padding=1)])
@@ -74,7 +74,7 @@ class EfficientNet(tf.keras.Model):
     def call(self, x, training=False):
         for (layer, i) in zip(self.layerlist, range(len(self.layerlist))):
             x = layer(x)        
-            print(f"after iteration {i}: x is {tf.shape(x)} and dtype: {x.dtype}")
+            print(f"after iteration {i} out of {len(self.layerlist)}: x is {tf.shape(x)} and dtype: {x.dtype}")
         print("done with layerlist")
         x = self.pool(x)
         x = self.dropout(x.view(x.shape[0], -1), training=training) 

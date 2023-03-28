@@ -50,7 +50,7 @@ class EfficientNet(tf.keras.Model):
         
         # Scale channels and num_layers according to width and depth multipliers.
         scaled_num_channels = [4*tf.math.ceil(int(c*width_factor) / 4) for c in num_channels]
-        scaled_num_layers = [int(d * depth_factor) for d in num_layers]
+        scaled_num_layers = [int(d*depth_factor) for d in num_layers]
         
         for i in range(len(scaled_num_channels)):
             kernel_size = kernels[i]
