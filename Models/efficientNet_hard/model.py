@@ -14,7 +14,7 @@ base_model = [
 ] 
 
 phi_values = {  
-            # tuple of: (width multiplier, depth multiplier, resolution, drop_rate=survival_prob)
+            # version: (width multiplier, depth multiplier, resolution, drop_rate=survival_prob)
             "b0": (1.0, 1.0, 224, 0.2),  
             "b1": (1.0, 1.1, 240, 0.2),
             "b2": (1.1, 1.2, 260, 0.3),
@@ -34,10 +34,9 @@ class EfficientNet(tf.keras.Model):
         self.layerlist = self.create_layers(width_factor, depth_factor, last_channels)
         self.pool = tf.keras.layers.GlobalAveragePooling2D()
         self.dropout = tf.keras.layers.Dropout(rate=dropout_rate)
-        self.lastlayer = tf.keras.layers.Dense(units=num_classes) # nn.Linear=(in_features=last_channels, out_features=num_classes),
+        self.lastlayer = tf.keras.layers.Dense(units=num_classes)
 
     def create_layers(self, width_factor, depth_factor, last_channels: int):
-
         channels = int(32*width_factor)
         sequential = tf.keras.Sequential()
         sequential.add(CNNBlock(filters=3, kernel_size=3, strides=2, padding="same")) # padding=1
@@ -48,8 +47,6 @@ class EfficientNet(tf.keras.Model):
             layers_repeats = int(tf.math.ceil(repeats*depth_factor))
 
             for layer in range(layers_repeats):
-                # print(f"layers_repeats: {layers_repeats}")
-
                 if kernel_size == 1:
                     pad = "valid"
                 elif kernel_size == 3:
@@ -65,36 +62,18 @@ class EfficientNet(tf.keras.Model):
                         strides=strides if layer == 0 else 1,
                         kernel_size=kernel_size,
                         padding = pad
-                        # padding=kernel_size // 2,  # if k=1:pad=0, k=3:pad=1, k=5:pad=2
                     )
                 )
                 input_filters = output_filters
 
         sequential.add(CNNBlock(filters=last_channels, kernel_size=2, strides=1, padding="same")) #"valid"))
 
-        # for layer in sequential.layers:
-            # print(f"layer.output_shape: {layer.output_shape}")
-
         return sequential
 
     def call(self, x, training=False):
-        # for (layer, i) in zip(self.layerlist, range(len(self.layerlist))):
-        #     print(f"It will go through this layerlist: {self.layerlist}")
-        #     x = layer(x)        
-        #     print(f"Went through the layerlist in iteration {i} out of {len(self.layerlist)}")
-        #     print(f"Now x has a shape of {tf.shape(x)} and dtype: {x.dtype}")
-
-        # for layer in self.layerlist:
-        #     print(f"It will go through this layerlist: {self.layerlist}")
-        #     x = layer(x)        
-        #     # print(f"Went through the layerlist in iteration {i} out of {len(self.layerlist)}")
-        #     print(f"Now x has a shape of {tf.shape(x)} and dtype: {x.dtype}")
-
         x = self.layerlist(x)
-        # print(f"Done with entire layerlist with x: {tf.shape(x)}")
-
         x = self.pool(x)
         x = self.dropout(x, training=training) 
         x = self.lastlayer(x)
-        # print(f"Done with the last layer with x: {tf.shape(x)}")
+
         return x
