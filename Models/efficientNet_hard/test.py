@@ -10,6 +10,6 @@ def test():
     print(f"initial shape of x: {tf.shape(x)} and dtype: {x.dtype}")
     y = network(x)
 
-    print(f"y.size: {y.size()}") # should be [1, num_classes]
+    print(f"y.size: {tf.shape(y)}") # should be [1, num_classes]
 
 test()

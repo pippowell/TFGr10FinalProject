@@ -30,7 +30,7 @@ class EfficientNet(tf.keras.Model):
         super(EfficientNet, self).__init__()
         width_factor, depth_factor, _, dropout_rate = phi_values[version]
         last_channels = int(tf.math.ceil(1280*width_factor))
-        
+
         self.layerlist = self.create_layers(width_factor, depth_factor, last_channels)
         self.pool = tf.keras.layers.GlobalAveragePooling2D()
         self.dropout = tf.keras.layers.Dropout(rate=dropout_rate)
@@ -39,8 +39,8 @@ class EfficientNet(tf.keras.Model):
     def create_layers(self, width_factor, depth_factor, last_channels: int):
 
         channels = int(32*width_factor)
-        sequential = tf.keras.Sequential()
-        sequential.add(CNNBlock(filters=3, kernel_size=3, strides=2, padding="same")) # padding=1
+        # features = tf.keras.models.Sequential([CNNBlock(filters=3, kernel_size=3, strides=2, padding=1)])
+        features = [CNNBlock(filters=3, kernel_size=3, strides=2, padding="same")] # padding=1
         input_filters = channels
 
         for expand_ratio, channels, repeats, strides, kernel_size in base_model:
@@ -57,7 +57,7 @@ class EfficientNet(tf.keras.Model):
                 elif kernel_size == 5:
                     pad = "same"
 
-                sequential.add(
+                features.append(
                     InvertedResidualBlock(
                         input_filters=input_filters,
                         output_filters=output_filters,
@@ -70,19 +70,15 @@ class EfficientNet(tf.keras.Model):
                 )
                 input_filters = output_filters
 
-        sequential.add(CNNBlock(filters=last_channels, kernel_size=2, strides=1, padding="same")) #"valid"))
-
-        # for layer in sequential.layers:
-            # print(f"layer.output_shape: {layer.output_shape}")
-
-        return sequential
+        features.append(CNNBlock(filters=last_channels, kernel_size=1, strides=1, padding="valid"))
+        return features
 
     def call(self, x, training=False):
-        # for (layer, i) in zip(self.layerlist, range(len(self.layerlist))):
-        #     print(f"It will go through this layerlist: {self.layerlist}")
-        #     x = layer(x)        
-        #     print(f"Went through the layerlist in iteration {i} out of {len(self.layerlist)}")
-        #     print(f"Now x has a shape of {tf.shape(x)} and dtype: {x.dtype}")
+        for (layer, i) in zip(self.layerlist, range(len(self.layerlist))):
+            print(f"It will go through this layerlist: {self.layerlist}")
+            x = layer(x)        
+            print(f"Went through the layerlist in iteration {i} out of {len(self.layerlist)}")
+            print(f"Now x has a shape of {tf.shape(x)} and dtype: {x.dtype}")
 
         # for layer in self.layerlist:
         #     print(f"It will go through this layerlist: {self.layerlist}")
@@ -90,11 +86,9 @@ class EfficientNet(tf.keras.Model):
         #     # print(f"Went through the layerlist in iteration {i} out of {len(self.layerlist)}")
         #     print(f"Now x has a shape of {tf.shape(x)} and dtype: {x.dtype}")
 
-        x = self.layerlist(x)
-        # print(f"Done with entire layerlist with x: {tf.shape(x)}")
-
+        # x = self.layerlist(x)
+        print("Done with entire iteration of the layerlist")
         x = self.pool(x)
-        x = self.dropout(x, training=training) 
+        x = self.dropout(x.view(x.shape[0], -1), training=training) 
         x = self.lastlayer(x)
-        # print(f"Done with the last layer with x: {tf.shape(x)}")
         return x

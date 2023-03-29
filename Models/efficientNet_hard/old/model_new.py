@@ -1,4 +1,4 @@
-from buildingBlocks import CNNBlock, InvertedResidualBlock
+from buildingBlocks import CNNBlock, InvertedResidualBlock, CNNBlock2
 import tensorflow as tf
 
 base_model = [
@@ -74,7 +74,7 @@ class EfficientNet(tf.keras.Model):
             input_filters = scaled_num_channels[i]
 
         features.append(
-            CNNBlock(filters=last_channels, kernel_size=1, strides=1, padding="valid")
+            CNNBlock2(filters=last_channels, kernel_size=1, strides=1, padding="valid")
         )
         return features
 

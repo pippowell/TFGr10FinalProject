@@ -10,16 +10,54 @@ class CNNBlock(tf.keras.Model):
         self.silu = tf.keras.layers.Activation(tf.nn.silu)
 
     def call(self, x):
-        print(f"before cnnBlock(x)")
-        # x = tf.cast(x, tf.int32)
+        # print(f"before cnnBlock(x): {tf.shape(x)}")
+        # x = tf.cast(x, tf.float32)
         x = self.cnn(x)
-        print(f"after cnn(x): {tf.shape(x)}")
+        # print(f"after cnn(x): {tf.shape(x)}")
         
         x = self.batchnorm(x)
         x = self.silu(x)
-        print(f"after cnn block: {tf.shape(x)}")
+        # print(f"after cnn block: {tf.shape(x)}")
         return x
 
+# class CNNBlock1(tf.keras.Model):
+#     '''Simple CNN block'''
+#     def __init__(self, filters: int, kernel_size, strides, padding):
+#         super(CNNBlock1, self).__init__()
+#         self.cnn1 = tf.keras.layers.Conv2D(filters=filters, kernel_size=kernel_size, strides=strides, padding=padding)
+#         self.batchnorm1 = tf.keras.layers.BatchNormalization()
+#         self.silu1 = tf.keras.layers.Activation(tf.nn.silu)
+
+#     def call(self, x):
+#         # print(f"before cnnBlock1(x): {tf.shape(x)}")
+#         # x = tf.cast(x, tf.float32)
+#         x = self.cnn1(x)
+#         # print(f"after cnn1(x): {tf.shape(x)}")
+        
+#         x = self.batchnorm1(x)
+#         x = self.silu1(x)
+#         # print(f"after cnn block1: {tf.shape(x)}")
+#         return x
+
+# class CNNBlock2(tf.keras.Model):
+#     '''Simple CNN block'''
+#     def __init__(self, filters: int, kernel_size, strides, padding):
+#         super(CNNBlock2, self).__init__()
+#         self.cnn2 = tf.keras.layers.Conv2D(filters=filters, kernel_size=kernel_size, strides=strides, padding=padding)
+#         self.batchnorm2 = tf.keras.layers.BatchNormalization()
+#         self.silu2 = tf.keras.layers.Activation(tf.nn.silu)
+
+#     def call(self, x):
+#         # print(f"before cnnBlock2(x): {tf.shape(x)}")
+#         # x = tf.cast(x, tf.float32)
+#         x = self.cnn2(x)
+#         # print(f"after cnn2(x): {tf.shape(x)}")
+        
+#         x = self.batchnorm2(x)
+#         x = self.silu2(x)
+#         # print(f"after cnn block2: {tf.shape(x)}")
+#         return x
+    
 class SEBlock(tf.keras.Model):
     '''Squeeze and excitation block'''
     def __init__(self, initial_dim: int, reduce_dim: int):
@@ -44,7 +82,7 @@ class SEBlock(tf.keras.Model):
         x = self.conv_squeeze(x)
         # print(f"after squeeze: {tf.shape(x)}")
         x = self.conv_excite(x)
-        print(f"after SE block: {tf.shape(x)}")
+        # print(f"after SE block: {tf.shape(x)}")
 
         out = tf.math.multiply(input, x)
         return out           
@@ -89,27 +127,28 @@ class InvertedResidualBlock(tf.keras.Model):
             return x
 
         else: 
-            binary_tensor = tf.random.uniform(shape=[x.shape[0], 1, 1, 1] < self.survival_prob)
-            return tf.divide(x, self.survival_prob)*binary_tensor
+            binary_tensor = tf.cast(tf.random.uniform([tf.shape(x)[0], 1, 1, 1]) < tf.cast(self.survival_prob, tf.float32), dtype=tf.float32)
+            # binary_tensor = tf.random.uniform(shape=[x.shape[0], 1, 1, 1] < self.survival_prob)
+            return tf.divide(x, tf.cast(self.survival_prob, tf.float32))*binary_tensor
         # return tfa.layers.StochasticDepth(survival_probability=self.survival_prob) # use built-in function
 
     def call(self, inputs, training=False):
         x = self.expand_conv(inputs) if self.expand else inputs
-        print(f"after expand_conv: {tf.shape(x)}, self.expand: {self.expand}")
+        # print(f"after expand_conv: {tf.shape(x)}, self.expand: {self.expand}")
         x = self.depthwise_conv(x)
-        print(f"after depthwise_conv: {tf.shape(x)}")
+        # print(f"after depthwise_conv: {tf.shape(x)}")
         x = self.seB(x)
-        print(f"after seB: {tf.shape(x)}") 
+        # print(f"after seB: {tf.shape(x)}") 
         x = self.pointwise_conv(x)
-        print(f"after pointwise_conv: {tf.shape(x)}")
+        # print(f"after pointwise_conv: {tf.shape(x)}")
         x = self.batchnorm(x)
-        print(f"after batchnorm: {tf.shape(x)}")
+        # print(f"after batchnorm: {tf.shape(x)}")
         
         if self.use_residual:
             x = self.stochastic_depth(x, training=training) 
             x += inputs
             # x = self.add([x, input])
-            print(f"after use_residual: {tf.shape(x)}, self.use_residual: {self.use_residual}")
+            # print(f"after use_residual: {tf.shape(x)}, self.use_residual: {self.use_residual}")
             return x
         else:
             return x

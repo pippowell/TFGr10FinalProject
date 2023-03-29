@@ -1,4 +1,4 @@
-from model import EffNet
+from model import EfficientNet, phi_values
 from preprocess import train_dataset, test_dataset
 import tensorflow as tf
 import matplotlib.pyplot as plt
@@ -6,11 +6,13 @@ import matplotlib.pyplot as plt
 epochs = 2
 lr = 1e-1
 
-mymodel = EffNet()
+version = "b0"
+_, _, res, _ = phi_values[version]
+mymodel = EfficientNet(version=version, num_classes=10)
 mymodel.compile(
     loss="categorical_crossentropy",
     optimizer=tf.keras.optimizers.Adam(1e-4),
-    metrics=["accuracy"]
+    metrics=["loss", "accuracy"]
 )
 
 history = mymodel.fit(
