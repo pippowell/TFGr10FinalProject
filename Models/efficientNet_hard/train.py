@@ -32,7 +32,7 @@ def plot_hist(hist):
     line4, = plt.plot(hist.history["val_loss"])
     plt.xlabel("Epochs")
     plt.ylabel("Loss")
-    plt.legend([line1, line2, line3, line4], ["accuracy", "val_accuracy", "Loss", "val_loss"], loc="upper left")
+    plt.legend([line1, line2, line3, line4], ["accuracy", "val_accuracy", "loss", "val_loss"], loc="upper left")
     plt.title(f"EfficientNet {version}")
     plt.ylabel("Accuracy/Loss")
     plt.xlabel("Epoch")
