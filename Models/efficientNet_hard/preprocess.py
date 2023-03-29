@@ -11,19 +11,17 @@ IMG_SIZE = 32
 
 def preprocess(dataset):
 
-    
-
     # convert data from uint8 to float32
     dataset = dataset.map(lambda img, target: (tf.cast(img, tf.float32), target))
 
     # flatten the images into vectors - we don't do this step for CNN, CNN layers expect standard image format input
     # dataset = dataset.map(lambda img, target: (tf.reshape(img, (-1,)), target))
 
-    # Define the indices of the images to load
-    indices = list(range(100))
+    # # Define the indices of the images to load
+    # indices = list(range(100))
 
-    # Load the selected images using the indices
-    dataset = tf.data.Dataset.from_tensor_slices(indices).map(lambda img, target: dataset.take(1), dataset.take(1))
+    # # Load the selected images using the indices
+    # dataset = tf.data.Dataset.from_tensor_slices(indices).map(lambda img, target: dataset.take(1), dataset.take(1))
     #### need to figure this out
 
     # input normalization, just bringing image values from range [0, 255] to [-1, 1]
@@ -38,10 +36,10 @@ def preprocess(dataset):
     # shuffle, batch, prefetch
     dataset = dataset.shuffle(1000)
     dataset = dataset.batch(batch_size)
-    dataset = dataset.prefetch(tf.data.AUTOTUNE) 
+    dataset = dataset.prefetch(tf.data.AUTOTUNE)
 
     # return preprocessed dataset
-    return dataset
+    return dataset.take(10)
 
 train_dataset = preprocess(train_ds)
 test_dataset = preprocess(test_ds)
