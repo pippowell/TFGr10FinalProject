@@ -3,10 +3,11 @@ import tensorflow as tf
 import splitfolders
 from pathlib import Path
 
-directory = str(Path(__file__).parents[0]) + "/train&val&test/train"
 
 # split the dataset into train, val, test dataset
 # splitfolders.ratio(f"str(Path(__file__).parents[0])/images/", output=f"{directory}/train&val&test", seed=1337, ratio=(.8, 0.1,0.1)) # A seed makes splits reproducible.
+
+directory = str(Path(__file__).parents[0]) + "/train&val&test/train"
 
 # Define your data preprocessing pipeline
 image_size = (224, 224)
@@ -22,14 +23,11 @@ def preprocess(dataset):
     # convert data from uint8 to float32
     dataset = dataset.map(lambda img, target: (tf.cast(img, tf.float32), target))
 
-    # flatten the images into vectors - we don't do this step for CNN, CNN layers expect standard image format input
-    # dataset = dataset.map(lambda img, target: (tf.reshape(img, (-1,)), target))
-
     # input normalization, just bringing image values from range [0, 255] to [-1, 1]
     dataset = dataset.map(lambda img, target: ((img / 128.) - 1., target))
 
     # create one-hot targets with depth 2 since we need to distinguish grapes from non-grapes
-    dataset = dataset.map(lambda img, target: (img, tf.one_hot(target, depth=10)))
+    dataset = dataset.map(lambda img, target: (img, tf.one_hot(target, depth=2)))
     # cache
     dataset = dataset.cache()
 
