@@ -1,9 +1,3 @@
-# SSD with Mobilenet v2
-# Trained on COCO17, initialized from Imagenet classification checkpoint
-# Train on TPU-8
-#
-# Achieves 22.2 mAP on COCO17 Val
-
 model {
   ssd {
     inplace_batchnorm_update: true
