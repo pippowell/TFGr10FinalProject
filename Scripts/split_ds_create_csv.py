@@ -54,8 +54,15 @@ def split_dataset(train_percent=0.9, val_percent=0.05):
         selected_rows = csvfile.iloc[indices]
         # path for new csv file
         new_csv_path = pth + '/images/train_labels.csv'
-        # write it in the train.csv file
-        selected_rows.to_csv(new_csv_path, mode='a', header=False, index=False)
+
+        # check if the CSV file exists and if it's empty
+        if os.path.isfile(new_csv_path):
+            # if the file exists append the new rows without the header
+            selected_rows.to_csv(new_csv_path, mode='a', header=False, index=False)
+        else:
+            # if the file does not exist or is empty, write the header and the new rows
+            selected_rows.to_csv(new_csv_path, mode='w', header=True, index=False)
+
         # move the image to train_path folder
         os.rename(rand_img, train_path + '/' + file_name)
         # remove the rand_img from file_list
@@ -69,7 +76,15 @@ def split_dataset(train_percent=0.9, val_percent=0.05):
         indices = csvfile.index[csvfile['image_filename'] == file_name].tolist()
         selected_rows = csvfile.iloc[indices]
         new_csv_path = pth + '/images/validation_labels.csv'
-        selected_rows.to_csv(new_csv_path, mode='a', header=False, index=False)
+
+        # check if the CSV file exists and if it's empty
+        if os.path.isfile(new_csv_path):
+            # if the file exists append the new rows without the header
+            selected_rows.to_csv(new_csv_path, mode='a', header=False, index=False)
+        else:
+            # if the file does not exist or is empty, write the header and the new rows
+            selected_rows.to_csv(new_csv_path, mode='w', header=True, index=False)
+
         os.rename(rand_img, val_path + '/' + file_name)
         file_list.remove(rand_img)
 
