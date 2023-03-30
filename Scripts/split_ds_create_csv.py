@@ -20,7 +20,7 @@ def split_dataset(train_percent=0.9, val_percent=0.05):
     train_path = pth + '/images/train'
     val_path = pth + '/images/validation'
     test_path = pth + '/images/test'
-    csv_path = pth + '/TFGr10FinalProject/Datasets/Grapes Dataset/grapes_ds.csv'
+    csv_path = pth + '/TFGr10FinalProject/Datasets/Grapes Dataset/grapes_ds_edited.csv'
 
 
     print(Path(image_path))
@@ -49,7 +49,7 @@ def split_dataset(train_percent=0.9, val_percent=0.05):
         # file name
         file_name = rand_img.name
         # indices of csv file corresponding to file_name
-        indices = csvfile.index[csvfile['image_filename'] == file_name].tolist()
+        indices = csvfile.index[csvfile['filename'] == file_name].tolist()
         # data rows
         selected_rows = csvfile.iloc[indices]
         # path for new csv file
@@ -73,7 +73,7 @@ def split_dataset(train_percent=0.9, val_percent=0.05):
     for i in range(val_num):
         rand_img = random.choice(file_list)  # choose a random image path from file_list
         file_name = rand_img.name
-        indices = csvfile.index[csvfile['image_filename'] == file_name].tolist()
+        indices = csvfile.index[csvfile['filename'] == file_name].tolist()
         selected_rows = csvfile.iloc[indices]
         new_csv_path = pth + '/images/validation_labels.csv'
 
