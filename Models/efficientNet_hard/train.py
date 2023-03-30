@@ -22,8 +22,8 @@ history = mymodel.fit(
     validation_data=test_dataset
 )
 
-hw_directory = str(Path(__file__).parents[0])
-print(hw_directory)
+directory = str(Path(__file__).parents[0])
+print(directory)
 
 def plot_hist(hist):
     line1, = plt.plot(hist.history["accuracy"])
@@ -36,7 +36,7 @@ def plot_hist(hist):
     plt.title(f"EfficientNet {version}")
     plt.ylabel("Accuracy/Loss")
     plt.xlabel("Epoch")
-    plt.savefig(hw_directory + '/' + f"plots/test_{epochs}epoch_{lr}lr")
+    plt.savefig(directory + '/' + f"plots/test_{epochs}epoch_{lr}lr")
     plt.show()
 
 plot_hist(history)
