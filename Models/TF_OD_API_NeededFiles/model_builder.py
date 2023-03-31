@@ -34,14 +34,14 @@ if tf_version.is_tf2():
     from object_detection.models.ssd_mobilenet_v2_keras_feature_extractor import SSDMobileNetV2KerasFeatureExtractor
 
   #our custom EN feature extractor
-    #from object_detection.models.ssd_efficientnet_custom_feature_extractor import EfficientNetFeatureExtractor
+    from object_detection.models.ssd_efficientnet_custom_feature_extractor import EfficientNetFeatureExtractor
 
 if tf_version.is_tf2():
   SSD_KERAS_FEATURE_EXTRACTOR_CLASS_MAP = {
       'ssd_mobilenet_v2_keras': SSDMobileNetV2KerasFeatureExtractor,
 
       #our custom EN feature extractor
-      #'ssd_efficientnet_custom': EfficientNetFeatureExtractor,
+      'ssd_efficientnet_custom': EfficientNetFeatureExtractor,
   }
 
   FEATURE_EXTRACTOR_MAPS = [
