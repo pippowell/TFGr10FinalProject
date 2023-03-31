@@ -1,4 +1,4 @@
-from EN_buildingBlocks import CNNBlock, InvertedResidualBlock
+from object_detection.models.EN_buildingBlocks import CNNBlock, InvertedResidualBlock
 import tensorflow as tf
 
 

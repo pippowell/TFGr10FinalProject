@@ -5,7 +5,7 @@ from object_detection.models import feature_map_generators
 # from object_detection.models.keras_models import mobilenet_v2
 from object_detection.utils import ops
 from object_detection.utils import shape_utils
-from EN_model import EfficientNet, phi_values
+from object_detection.models.EN_model import EfficientNet, phi_values
 
 # 1. copy the exactly from the class SSDMobileNetV2KerasFeatureExtractor
 # 2. customize under efficientNet architecture
