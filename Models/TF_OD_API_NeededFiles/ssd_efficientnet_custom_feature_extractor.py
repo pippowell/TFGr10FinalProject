@@ -25,7 +25,7 @@ class EfficientNetFeatureExtractor(
               conv_hyperparams,
               freeze_batchnorm,
               inplace_batchnorm_update,
-              # network_version='efficientnet-b0',
+              network_version='efficientnet-b0',
               min_feature_level=3,
               max_feature_level=7,
               additional_layer_depth=256,
@@ -93,38 +93,35 @@ class EfficientNetFeatureExtractor(
     self._data_format = data_format
     self._min_feature_level = min_feature_level
     self._max_feature_level = max_feature_level
-    self._additional_layer_depth = additional_layer_depth
-    default_nodes = ["block_4", "block_10", "block_15", "", "", "", ""] 
-    self._backbone_layers = 15
-    
-    # self._network_name = network_version
-    # if network_version == "efficientnet-b0":
-    #     default_nodes = ["block_4", "block_10", "block_15", "", "", "", ""] 
-    #     self._backbone_layers = 15
-    # elif network_version == "efficientnet-b1":
-    #     default_nodes = ["block_7", "block_15", "block_22", "", "", "", ""]
-    #     self._backbone_layers = 22
-    # elif network_version == 'efficientnet-b2':
-    #     default_nodes = ["block_7", "block_15", "block_22", "", "", "", ""]
-    #     self._backbone_layers = 22
-    # elif network_version == "efficientnet-b3":
-    #     default_nodes = ["block_7", "block_17", "block_25", "", "", "", ""]
-    #     self._backbone_layers = 25
-    # elif network_version == "efficientnet-b4":
-    #     default_nodes = ["block_9", "block_21", "block_31", "", "", "", ""]
-    #     self._backbone_layers = 31
-    # elif network_version == "efficientnet-b5":
-    #     default_nodes = ["block_12", "block_26", "block_38", "", "", "", ""]
-    #     self._backbone_layers = 38
-    # elif network_version == "efficientnet-b6":
-    #     default_nodes = ["block_14", "block_30", "block_44", "", "", "", ""]
-    #     self._backbone_layers = 44
-    # elif network_version == "efficientnet-b7":
-    #     default_nodes = ["block_17", "block_37", "block_54", "", "", "", ""]
-    #     self._backbone_layers = 54
-    # else:
-    #     raise ValueError("Unknown efficientnet name: {}".format(network_version))
-    # default_nodes = ["reduction_3", "reduction_4", "reduction_5", "", "", ""]
+    self._additional_layer_depth = additional_layer_depth   
+    self._network_name = network_version
+    if network_version == "efficientnet-b0":
+        default_nodes = ["block_4", "block_10", "block_15", "", "", "", ""] 
+        self._backbone_layers = 15
+    elif network_version == "efficientnet-b1":
+        default_nodes = ["block_7", "block_15", "block_22", "", "", "", ""]
+        self._backbone_layers = 22
+    elif network_version == 'efficientnet-b2':
+        default_nodes = ["block_7", "block_15", "block_22", "", "", "", ""]
+        self._backbone_layers = 22
+    elif network_version == "efficientnet-b3":
+        default_nodes = ["block_7", "block_17", "block_25", "", "", "", ""]
+        self._backbone_layers = 25
+    elif network_version == "efficientnet-b4":
+        default_nodes = ["block_9", "block_21", "block_31", "", "", "", ""]
+        self._backbone_layers = 31
+    elif network_version == "efficientnet-b5":
+        default_nodes = ["block_12", "block_26", "block_38", "", "", "", ""]
+        self._backbone_layers = 38
+    elif network_version == "efficientnet-b6":
+        default_nodes = ["block_14", "block_30", "block_44", "", "", "", ""]
+        self._backbone_layers = 44
+    elif network_version == "efficientnet-b7":
+        default_nodes = ["block_17", "block_37", "block_54", "", "", "", ""]
+        self._backbone_layers = 54
+    else:
+        raise ValueError("Unknown efficientnet name: {}".format(network_version))
+    default_nodes = ["reduction_3", "reduction_4", "reduction_5", "", "", ""]
 
     default_nodes_depth = [-1, -1, -1, 512, 256, 256, 128]
     self._used_nodes = default_nodes[min_feature_level-3:max_feature_level-2]
@@ -139,16 +136,18 @@ class EfficientNetFeatureExtractor(
     self._coarse_feature_layers = []
     self.net = None 
 
-  def build(self, input_shape=(res, res)):
-    model = build_model_base_keras_model(input_shape[1:], self._network_name, self._is_training)
+  def build(self, input_shape=(res, res)):    
+    model = EfficientNet(version="b0", num_classes=2)
+
     # inputs = tf.keras.layers.Input(input_shape[1:])
     inputs = model.inputs
     # _, endpoints = build_model_base(inputs, self._network_name, self._is_training)
     # outputs = [endpoints[x] for x in self._used_nodes if x]
     outputs = [model.get_layer(x).output for x in self._used_nodes if x]
     self.net = tf.keras.Model(inputs=inputs, outputs=outputs)
+
     # feature map generator
-    self._feature_map_generator = feature_map_generators.KerasMultiResolutionFeatureMaps(
+    self.feature_map_generator = feature_map_generators.KerasMultiResolutionFeatureMaps(
         feature_map_layout=self._feature_map_layout,
         depth_multiplier=self._depth_multiplier,
         min_depth=self._min_depth,
@@ -159,28 +158,6 @@ class EfficientNetFeatureExtractor(
         name=None
     )
     self.built = True 
-    
-    # model = EfficientNet(version=version, num_classes=2)
-
-    # # inputs = tf.keras.layers.Input(input_shape[1:])
-    # inputs = model.inputs
-    # # _, endpoints = build_model_base(inputs, self._network_name, self._is_training)
-    # # outputs = [endpoints[x] for x in self._used_nodes if x]
-    # outputs = [model.get_layer(x).output for x in self._used_nodes if x]
-    # self.net = tf.keras.Model(inputs=inputs, outputs=outputs)
-
-    # # feature map generator
-    # self.feature_map_generator = feature_map_generators.KerasMultiResolutionFeatureMaps(
-    #     feature_map_layout=self._feature_map_layout,
-    #     depth_multiplier=self._depth_multiplier,
-    #     min_depth=self._min_depth,
-    #     insert_1x1_conv=True, 
-    #     is_training=self._is_training,
-    #     conv_hyperparams=self._conv_hyperparams,
-    #     freeze_batchnorm=self._freeze_batchnorm,
-    #     name=None
-    # )
-    # self.built = True 
 
     # full_mobilenet_v2 = mobilenet_v2.mobilenet_v2(
     #     batchnorm_training=(self._is_training and not self._freeze_batchnorm),
