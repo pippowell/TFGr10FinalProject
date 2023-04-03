@@ -139,17 +139,15 @@ class EfficientNetFeatureExtractor(
     self.net = None 
 
   def build(self, input_shape=(res, res)):
-    model = EfficientNet(version=version, num_classes=2)
-
+    model = build_model_base_keras_model(input_shape[1:], self._network_name, self._is_training)
     # inputs = tf.keras.layers.Input(input_shape[1:])
     inputs = model.inputs
     # _, endpoints = build_model_base(inputs, self._network_name, self._is_training)
     # outputs = [endpoints[x] for x in self._used_nodes if x]
     outputs = [model.get_layer(x).output for x in self._used_nodes if x]
     self.net = tf.keras.Model(inputs=inputs, outputs=outputs)
-
     # feature map generator
-    self.feature_map_generator = feature_map_generators.KerasMultiResolutionFeatureMaps(
+    self._feature_map_generator = feature_map_generators.KerasMultiResolutionFeatureMaps(
         feature_map_layout=self._feature_map_layout,
         depth_multiplier=self._depth_multiplier,
         min_depth=self._min_depth,
@@ -160,6 +158,28 @@ class EfficientNetFeatureExtractor(
         name=None
     )
     self.built = True 
+    
+    # model = EfficientNet(version=version, num_classes=2)
+
+    # # inputs = tf.keras.layers.Input(input_shape[1:])
+    # inputs = model.inputs
+    # # _, endpoints = build_model_base(inputs, self._network_name, self._is_training)
+    # # outputs = [endpoints[x] for x in self._used_nodes if x]
+    # outputs = [model.get_layer(x).output for x in self._used_nodes if x]
+    # self.net = tf.keras.Model(inputs=inputs, outputs=outputs)
+
+    # # feature map generator
+    # self.feature_map_generator = feature_map_generators.KerasMultiResolutionFeatureMaps(
+    #     feature_map_layout=self._feature_map_layout,
+    #     depth_multiplier=self._depth_multiplier,
+    #     min_depth=self._min_depth,
+    #     insert_1x1_conv=True, 
+    #     is_training=self._is_training,
+    #     conv_hyperparams=self._conv_hyperparams,
+    #     freeze_batchnorm=self._freeze_batchnorm,
+    #     name=None
+    # )
+    # self.built = True 
 
     # full_mobilenet_v2 = mobilenet_v2.mobilenet_v2(
     #     batchnorm_training=(self._is_training and not self._freeze_batchnorm),
