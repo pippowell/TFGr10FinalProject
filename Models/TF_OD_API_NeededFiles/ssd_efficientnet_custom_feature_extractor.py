@@ -144,7 +144,7 @@ class EfficientNetFeatureExtractor(
     inputs = model.inputs
     # _, endpoints = build_model_base(inputs, self._network_name, self._is_training)
     # outputs = [endpoints[x] for x in self._used_nodes if x]
-    # outputs = [model.get_layer(x).output for x in self._used_nodes if x]
+    outputs = [model.get_layer(x).output for x in self._used_nodes if x]
     self.net = tf.keras.Model(inputs=inputs, outputs=outputs)
 
     # feature map generator
