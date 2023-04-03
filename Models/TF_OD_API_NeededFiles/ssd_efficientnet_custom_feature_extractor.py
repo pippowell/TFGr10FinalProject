@@ -34,7 +34,7 @@ class EfficientNetFeatureExtractor(
               use_antialias=False,
               override_base_feature_extractor_hyperparams=False,
               name=None,
-              data_format="channels_last")):
+              data_format="channels_last"):
     """SSD Feature Extractor using EfficientNet features. # B0? should we define which version?
     Args:
       is_training: whether the network is in training mode.
