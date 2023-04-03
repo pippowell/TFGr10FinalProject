@@ -16,19 +16,25 @@ _, _, res, _ = phi_values[version]
 
 class EfficientNetFeatureExtractor(
     ssd_meta_arch.SSDKerasFeatureExtractor):
-  def __init__(self,
-               is_training,
-               depth_multiplier,
-               min_depth,
-               pad_to_multiple,
-               conv_hyperparams,
-               freeze_batchnorm,
-               inplace_batchnorm_update,
-               use_explicit_padding=False,
-               use_depthwise=False,
-               num_layers=6,
-               override_base_feature_extractor_hyperparams=False,
-               name=None):
+  def __init__(self, 
+              is_training,
+              depth_multiplier,
+              min_depth,
+              pad_to_multiple,
+              conv_hyperparams,
+              freeze_batchnorm,
+              inplace_batchnorm_update,
+              network_version='efficientnet-b0',
+              min_feature_level=3,
+              max_feature_level=7,
+              additional_layer_depth=256,
+              reuse_weights=None,
+              use_explicit_padding=None,
+              use_depthwise=False,
+              use_antialias=False,
+              override_base_feature_extractor_hyperparams=False,
+              name=None,
+              data_format="channels_last")):
     """SSD Feature Extractor using EfficientNet features. # B0? should we define which version?
     Args:
       is_training: whether the network is in training mode.
@@ -70,20 +76,50 @@ class EfficientNetFeatureExtractor(
         override_base_feature_extractor_hyperparams=
         override_base_feature_extractor_hyperparams,
         name=name)
+    self._data_format = data_format
+    self._min_feature_level = min_feature_level
+    self._max_feature_level = max_feature_level
+    self._additional_layer_depth = additional_layer_depth
+    self._network_name = network_version
+    if network_version == "efficientnet-b0":
+        default_nodes = ["block_4", "block_10", "block_15", "", "", "", ""] 
+        self._backbone_layers = 15
+    elif network_version == "efficientnet-b1":
+        default_nodes = ["block_7", "block_15", "block_22", "", "", "", ""]
+        self._backbone_layers = 22
+    elif network_version == 'efficientnet-b2':
+        default_nodes = ["block_7", "block_15", "block_22", "", "", "", ""]
+        self._backbone_layers = 22
+    elif network_version == "efficientnet-b3":
+        default_nodes = ["block_7", "block_17", "block_25", "", "", "", ""]
+        self._backbone_layers = 25
+    elif network_version == "efficientnet-b4":
+        default_nodes = ["block_9", "block_21", "block_31", "", "", "", ""]
+        self._backbone_layers = 31
+    elif network_version == "efficientnet-b5":
+        default_nodes = ["block_12", "block_26", "block_38", "", "", "", ""]
+        self._backbone_layers = 38
+    elif network_version == "efficientnet-b6":
+        default_nodes = ["block_14", "block_30", "block_44", "", "", "", ""]
+        self._backbone_layers = 44
+    elif network_version == "efficientnet-b7":
+        default_nodes = ["block_17", "block_37", "block_54", "", "", "", ""]
+        self._backbone_layers = 54
+    else:
+        raise ValueError("Unknown efficientnet name: {}".format(network_version))
+    # default_nodes = ["reduction_3", "reduction_4", "reduction_5", "", "", ""]
+    default_nodes_depth = [-1, -1, -1, 512, 256, 256, 128]
+    self._used_nodes = default_nodes[min_feature_level-3:max_feature_level-2]
+    self._used_nodes_depth = default_nodes_depth[min_feature_level-3:max_feature_level-2]
     self._feature_map_layout = {
-        'from_layer': ['layer_15/expansion_output', 'layer_19', '', '', '', ''
-                      ][:self._num_layers],
-        'layer_depth': [-1, -1, 512, 256, 256, 128][:self._num_layers],
+        'from_layer': self._used_nodes,
+        'layer_depth': self._used_nodes_depth,
         'use_depthwise': self._use_depthwise,
-        'use_explicit_padding': self._use_explicit_padding,
+        'use_explicit_padding': self._use_explicit_padding
     }
-
-    self.classification_backbone = None
-    self.feature_map_generator = None
-
-    # made these global variables
-    # self.version = "b0"
-    # _, _, self.res, _ = phi_values[self.version]
+    self._feature_map_generator = None 
+    self._coarse_feature_layers = []
+    self.net = None 
 
   def build(self, input_shape=(res, res)):
     model = EfficientNet(version=version, num_classes=2)
