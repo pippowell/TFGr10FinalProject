@@ -72,9 +72,7 @@ class EfficientNetFeatureExtractor(
         inplace_batchnorm_update=inplace_batchnorm_update,
         use_explicit_padding=use_explicit_padding,
         use_depthwise=use_depthwise,
-        num_layers=num_layers,
-        override_base_feature_extractor_hyperparams=
-        override_base_feature_extractor_hyperparams,
+        override_base_feature_extractor_hyperparams=override_base_feature_extractor_hyperparams,
         name=name)
     self._data_format = data_format
     self._min_feature_level = min_feature_level
