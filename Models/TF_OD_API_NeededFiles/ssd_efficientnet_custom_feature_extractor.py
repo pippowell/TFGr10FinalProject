@@ -96,7 +96,8 @@ class EfficientNetFeatureExtractor(
     self._additional_layer_depth = additional_layer_depth   
     self._network_name = network_version
     if network_version == "efficientnet-b0":
-        default_nodes = ["block_4", "block_10", "block_15", "", "", "", ""] 
+        default_nodes = ['sequential', 'global_average_pooling2d_16', 'dropout', 'dense']
+        # default_nodes = ["block_4", "block_10", "block_15", "", "", "", ""] 
         self._backbone_layers = 15
     elif network_version == "efficientnet-b1":
         default_nodes = ["block_7", "block_15", "block_22", "", "", "", ""]
