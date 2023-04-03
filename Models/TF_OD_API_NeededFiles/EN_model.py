@@ -72,6 +72,7 @@ class EfficientNet(tf.keras.Model):
         return sequential
 
     def call(self, x, training=False):
+        x = self.inputlayer(x)
         x = self.layerlist(x)
         x = self.pool(x)
         x = self.dropout(x, training=training) 
