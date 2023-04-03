@@ -121,7 +121,7 @@ class EfficientNetFeatureExtractor(
         self._backbone_layers = 54
     else:
         raise ValueError("Unknown efficientnet name: {}".format(network_version))
-    default_nodes = ["reduction_3", "reduction_4", "reduction_5", "", "", ""]
+    # default_nodes = ["reduction_3", "reduction_4", "reduction_5", "", "", ""]
 
     default_nodes_depth = [-1, -1, -1, 512, 256, 256, 128]
     self._used_nodes = default_nodes[min_feature_level-3:max_feature_level-2]
