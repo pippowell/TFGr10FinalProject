@@ -96,7 +96,7 @@ class EfficientNetFeatureExtractor(
     self._additional_layer_depth = additional_layer_depth   
     self._network_name = network_version
     if network_version == "efficientnet-b0":
-        default_nodes = ['sequential', 'global_average_pooling2d_16', 'dropout', 'dense']
+        default_nodes = ['sequential', 'global_average_pooling2d_16', 'dropout']
         # default_nodes = ["block_4", "block_10", "block_15", "", "", "", ""] 
         self._backbone_layers = 15
     elif network_version == "efficientnet-b1":
@@ -140,9 +140,9 @@ class EfficientNetFeatureExtractor(
   def build(self, input_shape=(res, res)):    
     model = EfficientNet(version="b0", num_classes=2)
 
-    inputs = tf.keras.layers.Input(input_shape[1:])
+    # inputs = tf.keras.layers.Input(input_shape[1:])
     print(f"input: {inputs}")
-    # inputs = model.inputs
+    inputs = model.inputs
     # _, endpoints = build_model_base(inputs, self._network_name, self._is_training)
     # outputs = [endpoints[x] for x in self._used_nodes if x]
     outputs = [model.get_layer(x).output for x in self._used_nodes if x]
