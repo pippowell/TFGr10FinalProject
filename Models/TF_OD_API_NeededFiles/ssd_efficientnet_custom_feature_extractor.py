@@ -141,7 +141,7 @@ class EfficientNetFeatureExtractor(
     model = EfficientNet(version="b0", num_classes=2)
 
     # inputs = tf.keras.layers.Input(input_shape[1:])
-    print(f"input: {inputs}")
+    # print(f"input: {inputs}")
     inputs = model.inputs
     # _, endpoints = build_model_base(inputs, self._network_name, self._is_training)
     # outputs = [endpoints[x] for x in self._used_nodes if x]
