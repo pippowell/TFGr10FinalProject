@@ -304,7 +304,7 @@ class EfficientNetFeatureExtractorOfficial(
       name: a string name scope to assign to the model. If 'None', Keras will
         auto-generate one from the class name.
     """
-    super(SSDEfficientNetB0BiFPNKerasFeatureExtractor, self).__init__(
+    super(EfficientNetFeatureExtractorOfficial, self).__init__(
         is_training=is_training,
         depth_multiplier=depth_multiplier,
         min_depth=min_depth,
