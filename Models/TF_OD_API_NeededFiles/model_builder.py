@@ -31,17 +31,25 @@ from object_detection.utils import tf_version
 from object_detection.meta_architectures import ssd_meta_arch
 
 if tf_version.is_tf2():
+
+    # the official mobilenet feature extractor
     from object_detection.models.ssd_mobilenet_v2_keras_feature_extractor import SSDMobileNetV2KerasFeatureExtractor
 
-  #our custom EN feature extractor
+    #our custom EN feature extractor (does not work)
     from object_detection.models.ssd_efficientnet_custom_feature_extractor import EfficientNetFeatureExtractor
+
+    # our modified version of the official EN feature extractor
+    from object_detection.models.ssd_efficientnet_feature_extractor import EfficientNetFeatureExtractorOfficial
 
 if tf_version.is_tf2():
   SSD_KERAS_FEATURE_EXTRACTOR_CLASS_MAP = {
-      'ssd_mobilenet_v2_keras': SSDMobileNetV2KerasFeatureExtractor,
+    'ssd_mobilenet_v2_keras': SSDMobileNetV2KerasFeatureExtractor,
 
-      #our custom EN feature extractor
-      'ssd_efficientnet_custom': EfficientNetFeatureExtractor,
+    # our custom EN feature extractor
+    'ssd_efficientnet_custom': EfficientNetFeatureExtractor,
+
+    # our modified version of the official EN feature extractor
+    'ssd_efficientnet_official': EfficientNetFeatureExtractorOfficial,
   }
 
   FEATURE_EXTRACTOR_MAPS = [
