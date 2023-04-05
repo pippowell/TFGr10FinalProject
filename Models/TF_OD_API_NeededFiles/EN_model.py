@@ -28,9 +28,10 @@ phi_values = {
 class EfficientNet(tf.keras.Model):
     def __init__(self, version, num_classes):
         super(EfficientNet, self).__init__()
-        width_factor, depth_factor, _, dropout_rate = phi_values[version]
+        width_factor, depth_factor, res, dropout_rate = phi_values[version]
         last_channels = int(tf.math.ceil(1280*width_factor))
         
+        self.inputlayer = tf.keras.layers.Input(shape=(res,res))
         self.layerlist = self.create_layers(width_factor, depth_factor, last_channels)
         self.pool = tf.keras.layers.GlobalAveragePooling2D()
         self.dropout = tf.keras.layers.Dropout(rate=dropout_rate)
@@ -71,9 +72,10 @@ class EfficientNet(tf.keras.Model):
         return sequential
 
     def call(self, x, training=False):
+        x = self.inputlayer(x)
         x = self.layerlist(x)
         x = self.pool(x)
         x = self.dropout(x, training=training) 
-        x = self.lastlayer(x)
+        # x = self.lastlayer(x)
 
         return x
