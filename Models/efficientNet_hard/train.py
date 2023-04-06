@@ -4,8 +4,8 @@ import tensorflow as tf
 import matplotlib.pyplot as plt
 from pathlib import Path
 
-epochs = 10
-lr = 1e-3
+epochs = 15
+lr = 1e-5
 
 version = "b0"
 _, _, res, _ = phi_values[version]
@@ -35,7 +35,7 @@ def plot_hist(hist):
     plt.title(f"EfficientNet {version}")
     plt.ylabel("Accuracy/Loss")
     plt.xlabel("Epoch")
-    plt.savefig(directory + f"/plots/test_{epochs}_epochs")
+    plt.savefig(directory + f"/plots/test_{epochs}_epochs_{lr}_lr")
     plt.show()
 
 plot_hist(history)
