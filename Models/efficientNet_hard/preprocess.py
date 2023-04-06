@@ -2,48 +2,70 @@ import tensorflow_datasets as tfds
 import tensorflow as tf
 import splitfolders
 from pathlib import Path
+from model import phi_values
+import cv2
+import os
+import numpy as np
 
+version = "b0"
+_, _, res, _ = phi_values[version]
+batch_size = 1 # since the dataset is small
 
-# split the dataset into train, val, test dataset
-# splitfolders.ratio(f"str(Path(__file__).parents[0])/images/", output=f"{directory}/train&val&test", seed=1337, ratio=(.8, 0.1,0.1)) # A seed makes splits reproducible.
+# Load and preprocess first dataset
+dataset1_folder = str(Path(__file__).parents[0]) + '/images/bananas'  # Replace with the path to your first dataset folder
+images1 = []
+labels1 = []
 
-directory = str(Path(__file__).parents[0]) + "/train&val&test/train"
+for file_name in os.listdir(dataset1_folder):
+    file_path = os.path.join(dataset1_folder, file_name)
+    # Load the image using OpenCV
+    image = cv2.imread(file_path)
+    # Resize the image to a specific size
+    image = cv2.resize(image, (res, res))
+    # Normalize the pixel values to [0, 1]
+    image = image/255.0
+    images1.append(image)
+    label = 0 # Replace with the label for dataset1 images
+    labels1.append(label)
 
-# Define your data preprocessing pipeline
-image_size = (224, 224)
-batch_size = 32
-dataset = tf.keras.preprocessing.image_dataset_from_directory(
-    directory,
-    image_size=image_size,
-    batch_size=batch_size
-)
+# Load and preprocess second dataset
+dataset2_folder = str(Path(__file__).parents[0]) + '/images/grapes' # Replace with the path to your second dataset folder
+images2 = []
+labels2 = []
+for file_name in os.listdir(dataset2_folder):
+    file_path = os.path.join(dataset2_folder, file_name)
+    # Load the image using OpenCV
+    image = cv2.imread(file_path)
+    # Resize the image to a specific size
+    image = cv2.resize(image, (res, res))
+    # Normalize the pixel values to [0, 1]
+    image = image/255.0
+    images2.append(image)
+    label = 1  # Replace with the label for dataset2 images
+    labels2.append(label)
 
-def preprocess(dataset):
+# Concatenate or merge the datasets
+images = np.concatenate((images1, images2), axis=0)
+labels = np.concatenate((labels1, labels2), axis=0)
 
-    # convert data from uint8 to float32
-    dataset = dataset.map(lambda img, target: (tf.cast(img, tf.float32), target))
+images = np.array(images)
+labels = np.array(labels)
 
-    # input normalization, just bringing image values from range [0, 255] to [-1, 1]
-    dataset = dataset.map(lambda img, target: ((img / 128.) - 1., target))
+data = tf.data.Dataset.from_tensor_slices((images, labels))
 
-    # create one-hot targets with depth 2 since we need to distinguish grapes from non-grapes
-    dataset = dataset.map(lambda img, target: (img, tf.one_hot(target, depth=2)))
-    # cache
-    dataset = dataset.cache()
+# Shuffle the order of images
+data = data.shuffle(1000)
 
-    # shuffle, batch, prefetch
-    dataset = dataset.shuffle(1000)
-    dataset = dataset.batch(batch_size)
-    dataset = dataset.prefetch(tf.data.AUTOTUNE)
+# Split into training and validation sets
+train_ds = data.take(int(len(images)*0.8))  # 80% of data for training
+val_ds = data.skip(int(len(images)*0.8))  # 20% of data for validation
 
-    # return preprocessed dataset # take 10 from 60000
-    return dataset.take(10)
+# Further processing and batching of the datasets
+train_ds = train_ds.batch(batch_size) 
+train_ds = train_ds.prefetch(tf.data.AUTOTUNE)
 
+val_ds = val_ds.batch(batch_size)
+val_ds = val_ds.prefetch(tf.data.AUTOTUNE)
 
-train_dataset = preprocess(dataset)
-# val_dataset = preprocess(f"{directory}/train&val&test/val")
-# test_dataset = preprocess(f"{directory}/train&val&test/test")
-
-
-# checking
-print(train_dataset)
+# print(f"train_ds: {train_ds.cardinality().numpy()}")
+# print(f"val_ds: {val_ds.cardinality().numpy()}")
