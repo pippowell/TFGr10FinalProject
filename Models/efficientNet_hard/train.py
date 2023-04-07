@@ -4,7 +4,7 @@ import tensorflow as tf
 import matplotlib.pyplot as plt
 from pathlib import Path
 
-epochs = 15
+epochs = 20
 lr = 1e-5
 
 version = "b0"
