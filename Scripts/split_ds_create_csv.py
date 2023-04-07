@@ -9,6 +9,8 @@ import os
 import sys
 import pandas as pd
 
+# same set of random numbers are generated each time
+random.seed(42)
 
 def split_dataset(train_percent=0.9, val_percent=0.05):
 
