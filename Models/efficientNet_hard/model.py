@@ -1,7 +1,6 @@
 from buildingBlocks import CNNBlock, InvertedResidualBlock
 import tensorflow as tf
 
-
 base_model = [
             # expand_ratio, channels, repeats, strides, kernel_size
             [1, 16, 1, 1, 3],
