@@ -27,18 +27,11 @@ class EffNet(tf.keras.Model):
         self.outputlayer = tf.keras.layers.Dense(NUM_CLASSES, activation="softmax") # replacing the last layers with custom layers
 
     def call(self, input):
-        # print(f"shape before anything: {input.shape}")  # (None, 32, 32, 3)
         x = self.conv_base(input)
-        # print(f"shape after effnet: {x.shape}")  # (None, 1, 1, 1280)
         x = self.gpool(x)
-        # print(f"shape after gpool: {x.shape}")  # (None, 1280)
         x = self.regularization(x)
-        # print(f"shape after regularization: {x.shape}") # (None, 512)
         x = self.batchnorm(x)
-        # print(f"shape after batchnorm: {x.shape}")  # (None, 512)
         x = self.dropout(x)
-        # print(f"shape after dropout: {x.shape}")  # (None, 512)
         x = self.outputlayer(x)
-        # print(f"shape after outputlayer: {x.shape}")  # (None, num_classes)
         
         return x

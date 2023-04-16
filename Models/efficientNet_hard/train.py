@@ -8,7 +8,6 @@ epochs = 20
 lr = 1e-5
 
 version = "b0"
-_, _, res, _ = phi_values[version]
 mymodel = EfficientNet(version=version, num_classes=2)
 mymodel.compile(
     loss=tf.keras.losses.BinaryCrossentropy(),
